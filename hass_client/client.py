@@ -44,7 +44,8 @@ class HomeAssistantClient:
         self,
         url: str = None,
         token: str = None,
-        aiohttp_session: Optional[ClientSession] = None, verify_ssl: bool = True,
+        aiohttp_session: Optional[ClientSession] = None,
+        verify_ssl: bool = True,
     ):
         """
         Initialize the connection to HomeAssistant.
