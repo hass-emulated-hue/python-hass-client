@@ -207,7 +207,7 @@ class HomeAssistantClient:
             msg["service_data"] = service_data
         return await self.send_command(msg)
 
-    async def get_rest_data(self, endpoint: str) -> dict:
+    async def rest_get_data(self, endpoint: str) -> dict:
         """
         Get data from the Home Assistant Rest API.
 
