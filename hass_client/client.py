@@ -44,7 +44,7 @@ class HomeAssistantClient:
         self,
         url: str = None,
         token: str = None,
-        aiohttp_session: Optional[ClientSession] = None,
+        aiohttp_session: Optional[ClientSession] = None, verify_ssl: bool = True,
     ):
         """
         Initialize the connection to HomeAssistant.
@@ -68,6 +68,10 @@ class HomeAssistantClient:
             self._token = token
         else:
             raise CannotConnect("Please provide a valid url and token!")
+        self.rest_server_url = self.ws_server_url.replace("wss://", "https://").replace(
+            "ws://", "http://"
+        )
+        self._verify_ssl = verify_ssl
         self._event_listeners = []
         self._version = None
         self._last_msg_id = 0
@@ -203,6 +207,25 @@ class HomeAssistantClient:
             msg["service_data"] = service_data
         return await self.send_command(msg)
 
+    async def get_rest_data(self, endpoint: str) -> dict:
+        """
+        Get data from the Home Assistant Rest API.
+
+            :param endpoint: The /api endpoint to call (e.g. /states).
+            :return: The response from the Home Assistant Rest API as a dict.
+        """
+        url = (
+            self.ws_server_url.replace("wss://", "https://")
+            .replace("ws://", "http://")
+            .replace("/websocket", endpoint)
+        )
+
+        headers = {"Authorization": "Bearer %s" % self._get_token()}
+        async with self._http_session.get(
+            url, headers=headers, verify_ssl=self._verify_ssl
+        ) as response:
+            return await response.json()
+
     async def set_state(
         self, entity_id: str, new_state: str, state_attributes: dict = None
     ):
@@ -239,7 +262,7 @@ class HomeAssistantClient:
         LOGGER.debug("Connecting to Home Assistant...")
         try:
             self._client = await self._http_session.ws_connect(
-                self.ws_server_url, heartbeat=55
+                self.ws_server_url, heartbeat=55, verify_ssl=self._verify_ssl
             )
             version_msg = await self._client.receive_json()
             self._version = version_msg["ha_version"]
@@ -404,16 +427,18 @@ class HomeAssistantClient:
 
     async def _post_data(self, endpoint: str, data: dict):
         """Post data to hass rest api."""
-        url = self.ws_server_url.replace("wss://", "https://").replace(
-            "ws://", "http://"
+        url = (
+            self.ws_server_url.replace("wss://", "https://")
+            .replace("ws://", "http://")
+            .replace("websocket", endpoint)
         )
-        url = self.ws_server_url.replace("websocket", endpoint)
+
         headers = {
             "Authorization": "Bearer %s" % self._get_token(),
             "Content-Type": "application/json",
         }
         async with self._http_session.post(
-            url, headers=headers, json=data, verify_ssl=False
+            url, headers=headers, json=data, verify_ssl=self._verify_ssl
         ) as response:
             return await response.json()
 
