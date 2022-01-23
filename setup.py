@@ -5,7 +5,7 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 
 PROJECT_DIR = Path(__file__).parent.resolve()
 README_FILE = PROJECT_DIR / "README.md"
@@ -30,7 +30,7 @@ setup(
     long_description_content_type="text/markdown",
     packages=PACKAGES,
     include_package_data=True,
-    python_requires=">=3.8",
+    python_requires=">=3.9",
     install_requires=REQUIRES,
     package_data={"hass_client": PACKAGE_FILES},
     zip_safe=False,

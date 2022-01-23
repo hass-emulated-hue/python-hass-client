@@ -175,7 +175,7 @@ class HomeAssistantClient:
             raise NotConnected("Please call connect first.")
         return [value for key, value in self._states.items() if key.startswith(domain)]
 
-    def get_state(self, entity_id: str, attribute: str = "state") -> dict:
+    def get_state(self, entity_id: str, attribute: Optional[str] = "state") -> dict:
         """
         Get state(obj) of a Home Assistant entity.
 
