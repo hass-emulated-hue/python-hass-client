@@ -262,21 +262,23 @@ class HomeAssistantClient:
         """Connect to the websocket server."""
         LOGGER.debug("Connecting to Home Assistant...")
         try:
-            self._client = await self._http_session.ws_connect(
-                self.ws_server_url, heartbeat=55, verify_ssl=self._verify_ssl
-            )
-            version_msg = await self._client.receive_json()
-            self._version = version_msg["ha_version"]
-            # send authentication
-            await self._client.send_json({"type": "auth", "access_token": self._token})
-            auth_result = await self._client.receive_json()
-            if auth_result.get("type", "") != "auth_ok":
-                raise AuthenticationFailed(
-                    auth_result.get("message", "Authentication failed")
+            async with asyncio.timeout(10):
+                self._client = await self._http_session.ws_connect(
+                    self.ws_server_url, heartbeat=55, verify_ssl=self._verify_ssl
                 )
+                version_msg = await self._client.receive_json()
+                self._version = version_msg["ha_version"]
+                # send authentication
+                await self._client.send_json({"type": "auth", "access_token": self._token})
+                auth_result = await self._client.receive_json()
+                if auth_result.get("type", "") != "auth_ok":
+                    raise AuthenticationFailed(
+                        auth_result.get("message", "Authentication failed")
+                    )
         except (
             client_exceptions.WSServerHandshakeError,
             client_exceptions.ClientError,
+            asyncio.TimeoutError,
         ) as err:
             raise CannotConnect(err) from err
 

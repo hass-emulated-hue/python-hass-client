@@ -5,7 +5,7 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-VERSION = "0.1.5"
+VERSION = "0.1.6"
 
 PROJECT_DIR = Path(__file__).parent.resolve()
 README_FILE = PROJECT_DIR / "README.md"
